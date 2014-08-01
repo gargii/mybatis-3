@@ -210,7 +210,7 @@ public class FastResultSetHandler implements ResultSetHandler {
     final DefaultResultContext resultContext = new DefaultResultContext();
     skipRows(rs, rowBounds);
     while (shouldProcessMoreRows(rs, resultContext, rowBounds)) {
-      final ResultMap discriminatedResultMap = resolveDiscriminatedResultMap(rs, resultMap, null);
+      final ResultMap discriminatedResultMap = resolveDiscriminatedResultMap(rs, resultMap, null, resultColumnCache);
       Object rowValue = getRowValue(rs, discriminatedResultMap, null, resultColumnCache);
       resultContext.nextResultObject(rowValue);
       resultHandler.handleResult(resultContext);
@@ -514,11 +514,18 @@ public class FastResultSetHandler implements ResultSetHandler {
   // DISCRIMINATOR
   //
 
-  public ResultMap resolveDiscriminatedResultMap(ResultSet rs, ResultMap resultMap, String columnPrefix) throws SQLException {
+  public ResultMap resolveDiscriminatedResultMap(ResultSet rs, ResultMap resultMap, String columnPrefix, ResultColumnCache resultColumnCache) throws SQLException {
     Set<String> pastDiscriminators = new HashSet<String>();
     Discriminator discriminator = resultMap.getDiscriminator();
     while (discriminator != null) {
-      final Object value = getDiscriminatorValue(rs, discriminator, columnPrefix);
+      String columnName = prependPrefix( discriminator.getResultMapping().getColumn(), columnPrefix );
+
+      if ( !resultColumnCache.hasColumn( columnName ) )
+        // if discriminator column is missing, return just basic (ancestor's) resultmap
+        // ...and do not throw an exception...  
+        return resultMap;
+
+      final Object value = getDiscriminatorValue( rs, discriminator, columnName );
       final String discriminatedMapId = discriminator.getMapIdFor(String.valueOf(value));
       if (configuration.hasResultMap(discriminatedMapId)) {
         resultMap = configuration.getResultMap(discriminatedMapId);
@@ -534,11 +541,11 @@ public class FastResultSetHandler implements ResultSetHandler {
     return resultMap;
   }
 
-  protected Object getDiscriminatorValue(ResultSet rs, Discriminator discriminator, String columnPrefix) throws SQLException {
+  protected Object getDiscriminatorValue(ResultSet rs, Discriminator discriminator, String columnName) throws SQLException {
     final ResultMapping resultMapping = discriminator.getResultMapping();
     final TypeHandler<?> typeHandler = resultMapping.getTypeHandler();
     if (typeHandler != null) {
-      return typeHandler.getResult(rs, prependPrefix(resultMapping.getColumn(), columnPrefix));
+      return typeHandler.getResult(rs, columnName);
     } else {
       throw new ExecutorException("No type handler could be found to map the property '" + resultMapping.getProperty() + "' to the column '" + resultMapping.getColumn() + "'.  One or both of the types, or the combination of types is not supported.");
     }
@@ -572,8 +579,8 @@ public class FastResultSetHandler implements ResultSetHandler {
     private final List<String> classNames = new ArrayList<String>();
     private final List<JdbcType> jdbcTypes = new ArrayList<JdbcType>();
     private final Map<String, Map<Class<?>, TypeHandler<?>>> typeHandlerMap = new HashMap<String, Map<Class<?>, TypeHandler<?>>>();
-    private Map<String, List<String>> mappedColumnNamesMap = new HashMap<String, List<String>>();
-    private Map<String, List<String>> unMappedColumnNamesMap = new HashMap<String, List<String>>();
+    private final Map<String, List<String>> mappedColumnNamesMap = new HashMap<String, List<String>>();
+    private final Map<String, List<String>> unMappedColumnNamesMap = new HashMap<String, List<String>>();
 
     protected ResultColumnCache(ResultSetMetaData metaData, Configuration configuration) throws SQLException {
       super();
@@ -584,6 +591,29 @@ public class FastResultSetHandler implements ResultSetHandler {
         jdbcTypes.add(JdbcType.forCode(metaData.getColumnType(i)));
         classNames.add(metaData.getColumnClassName(i));
       }
+    }
+    
+    /** cache for {@link #hasColumn(String)} */
+    private final Map<String, Boolean> hasColumnCache = new HashMap<String, Boolean>();
+
+    /**
+     * Is this column present in the result set?
+     * @param columnName
+     *@return true if present
+     */
+    protected boolean hasColumn( String columnName ) {
+      Boolean result = hasColumnCache.get( columnName );
+      
+      if ( result == null ) {
+        result = false;
+        for ( String c : columnNames )
+          if ( c.equalsIgnoreCase( columnName ) ) {
+            result = true;
+            break;
+          }
+        hasColumnCache.put( columnName, result );
+      }
+      return result;
     }
 
     protected List<String> getColumnNames() {

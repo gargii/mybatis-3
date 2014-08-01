@@ -102,7 +102,7 @@ public class NestedResultSetHandler extends FastResultSetHandler {
     final DefaultResultContext resultContext = new DefaultResultContext();
     skipRows(rs, rowBounds);
     while (shouldProcessMoreRows(rs, resultContext, rowBounds)) {
-      final ResultMap discriminatedResultMap = resolveDiscriminatedResultMap(rs, resultMap, null);
+      final ResultMap discriminatedResultMap = resolveDiscriminatedResultMap(rs, resultMap, null, resultColumnCache);
       final CacheKey rowKey = createRowKey(discriminatedResultMap, rs, null, resultColumnCache);
       final boolean knownValue = objectCache.containsKey(rowKey);
       Object rowValue = getRowValue(rs, discriminatedResultMap, rowKey, resultColumnCache);
@@ -169,7 +169,7 @@ public class NestedResultSetHandler extends FastResultSetHandler {
           if (parentPrefix != null) columnPrefixBuilder.append(parentPrefix);
           if (resultMapping.getColumnPrefix()!= null) columnPrefixBuilder.append(resultMapping.getColumnPrefix());
           final String columnPrefix = columnPrefixBuilder.length() == 0 ? null : columnPrefixBuilder.toString().toUpperCase(Locale.ENGLISH);
-          final ResultMap nestedResultMap = getNestedResultMap(rs, nestedResultMapId, columnPrefix);
+          final ResultMap nestedResultMap = getNestedResultMap(rs, nestedResultMapId, columnPrefix, resultColumnCache);
           final Object targetProperty = instantiateCollectionPropertyIfAppropriate(resultMapping, metaObject);
           final MetaObject targetMetaObject = configuration.newMetaObject(targetProperty);
           final CacheKey rowKey = createRowKey(nestedResultMap, rs, columnPrefix, resultColumnCache);
@@ -230,9 +230,9 @@ public class NestedResultSetHandler extends FastResultSetHandler {
     return propertyValue;
   }
 
-  private ResultMap getNestedResultMap(ResultSet rs, String nestedResultMapId, String columnPrefix) throws SQLException {
+  private ResultMap getNestedResultMap(ResultSet rs, String nestedResultMapId, String columnPrefix, ResultColumnCache resultColumnCache) throws SQLException {
     ResultMap nestedResultMap = configuration.getResultMap(nestedResultMapId);
-    nestedResultMap = resolveDiscriminatedResultMap(rs, nestedResultMap, columnPrefix);
+    nestedResultMap = resolveDiscriminatedResultMap(rs, nestedResultMap, columnPrefix, resultColumnCache);
     return nestedResultMap;
   }
 
