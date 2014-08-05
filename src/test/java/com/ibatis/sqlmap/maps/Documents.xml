@@ -41,6 +41,15 @@
     </discriminator>
   </resultMap>
 
+  <resultMap id="documentWithTypeOnlyAsDiscriminator" class="com.testdomain.Document">
+    <result property="id" column="DOCUMENT_ID"/>
+    <result property="title" column="DOCUMENT_TITLE"/>
+    <discriminator column="DOCUMENT_TYPE" javaType="string">
+      <subMap value="BOOK" resultMap="book"/>
+      <subMap value="NEWSPAPER" resultMap="news"/>
+    </discriminator>
+  </resultMap>
+
   <resultMap id="documentWithAttributes" class="com.testdomain.Document" groupBy="id">
     <result property="id" column="DOCUMENT_ID"/>
     <result property="title" column="DOCUMENT_TITLE"/>
@@ -88,12 +97,30 @@
     order by a.person_id
   </select>
 
+  <select id="getPersonWithoutDocuments" resultMap="personDocument">
+    select a.person_id, a.person_name
+    from person_documents a join documents b
+    on a.document_id = b.document_id
+    order by a.person_id
+  </select>
+
+  <select id="getPersonDocumentsNotUsingDiscriminator" resultMap="personDocument">
+    select a.person_id, a.person_name, b.document_title
+    from person_documents a join documents b
+    on a.document_id = b.document_id
+    order by a.person_id
+  </select>
+
   <select id="getDocuments" resultMap="document">
     select * from DOCUMENTS
   </select>
 
   <select id="getDocument" parameterClass="int" resultMap="document">
     select * from DOCUMENTS where DOCUMENT_ID = #id#
+  </select>
+
+  <select id="getDocumentWithoutType" parameterClass="int" resultMap="documentWithTypeOnlyAsDiscriminator">
+    select document_id, document_title from DOCUMENTS where DOCUMENT_ID = #id#
   </select>
 
   <insert id="insertDocument" parameterClass="com.testdomain.Document">

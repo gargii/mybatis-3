@@ -15,16 +15,17 @@
  */
 package com.ibatis.sqlmap;
 
+import java.util.List;
+
 import com.testdomain.Book;
 import com.testdomain.Document;
 import com.testdomain.Magazine;
 import com.testdomain.PersonDocument;
 
-import java.util.List;
-
 public class DiscriminatorTest extends BaseSqlMapTest {
 
-  protected void setUp() throws Exception {
+  @Override
+protected void setUp() throws Exception {
     initSqlMap("com/ibatis/sqlmap/maps/SqlMapConfig.xml", null);
     initScript("com/scripts/docs-init.sql");
   }
@@ -89,5 +90,34 @@ public class DiscriminatorTest extends BaseSqlMapTest {
 
     d = (Document) list.get(5);
     assertEquals(0, d.getAttributes().size());
+  }
+
+  public void testMissingDiscriminatorInResultSet() throws Exception {
+     Object object = sqlMap.queryForObject( "getDocumentWithoutType", 1);
+     // it is not a book, because of the missing discriminator
+     // through fallback it becomes just a Document
+     assertTrue(object instanceof Document);
+
+     assertFalse(object instanceof Book);
+     assertFalse(object instanceof Magazine);
+  }
+
+
+  public void testNotSelectedDiscriminatorWithSelectedAndJoinedDocuments() throws Exception {
+    List list = sqlMap.queryForList("getPersonDocumentsNotUsingDiscriminator");
+    assertEquals(3, list.size());
+    // discriminator not available - everything is just a Document
+    assertTrue(((PersonDocument)list.get(0)).getFavoriteDocument() instanceof Document);
+    assertTrue(((PersonDocument)list.get(1)).getFavoriteDocument() instanceof Document);
+    assertTrue(((PersonDocument)list.get(2)).getFavoriteDocument() instanceof Document);
+  }
+
+  public void testNotSelectedDiscriminatorWithJoinedButNotSelectedDocuments() throws Exception {
+    List list = sqlMap.queryForList("getPersonWithoutDocuments");
+    assertEquals(3, list.size());
+    // documents have not been selected hence everything is null
+    assertNull(((PersonDocument)list.get(0)).getFavoriteDocument());
+    assertNull(((PersonDocument)list.get(1)).getFavoriteDocument());
+    assertNull(((PersonDocument)list.get(2)).getFavoriteDocument());
   }
 }
