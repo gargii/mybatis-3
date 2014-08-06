@@ -80,9 +80,9 @@
   </contributors>
 
   <scm>
-    <url>scm:svn:https://github.com/gargii/mybatis-3</url>
-    <connection>scm:svn:https://github.com/gargii/mybatis-3</connection>
-    <developerConnection>scm:svn:https://github.com/gargii/mybatis-3</developerConnection>
+    <url>scm:svn:https://github.com/gargii/mybatis-3/branches/discriminator</url>
+    <connection>scm:svn:https://github.com/gargii/mybatis-3/branches/discriminator</connection>
+    <developerConnection>scm:svn:https://github.com/gargii/mybatis-3/branches/discriminator</developerConnection>
   </scm>
   <distributionManagement>
     <!-- Cannot define in parent ATM, see COMMONSSITE-26 -->
