@@ -28,7 +28,7 @@
   </parent>
 
   <artifactId>cz.alis.keong.mybatis</artifactId>
-  <version>3.1.10</version>
+  <version>3.1.11-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <name>MyBatis</name>
@@ -80,9 +80,9 @@
   </contributors>
 
   <scm>
-    <url>scm:svn:https://github.com/gargii/mybatis-3/tags/mybatis-3.1.10</url>
-    <connection>scm:svn:https://github.com/gargii/mybatis-3/tags/mybatis-3.1.10</connection>
-    <developerConnection>scm:svn:https://github.com/gargii/mybatis-3/tags/mybatis-3.1.10</developerConnection>
+    <url></url>
+    <connection></connection>
+    <developerConnection></developerConnection>
   </scm>
   <distributionManagement>
     <!-- Cannot define in parent ATM, see COMMONSSITE-26 -->
