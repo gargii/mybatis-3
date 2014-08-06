@@ -15,16 +15,10 @@
  */
 package org.apache.ibatis.jdbc;
 
-import org.apache.ibatis.BaseDataTest;
-import org.apache.ibatis.datasource.pooled.PooledDataSource;
-import org.apache.ibatis.datasource.unpooled.UnpooledDataSource;
-import org.apache.ibatis.io.Resources;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
-import org.junit.Ignore;
-import org.junit.Test;
-
-import javax.sql.DataSource;
 import java.io.IOException;
 import java.io.Reader;
 import java.sql.Connection;
@@ -32,6 +26,15 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+
+import javax.sql.DataSource;
+
+import org.apache.ibatis.BaseDataTest;
+import org.apache.ibatis.datasource.pooled.PooledDataSource;
+import org.apache.ibatis.datasource.unpooled.UnpooledDataSource;
+import org.apache.ibatis.io.Resources;
+import org.junit.Ignore;
+import org.junit.Test;
 
 public class ScriptRunnerTest extends BaseDataTest {
 
@@ -108,7 +111,8 @@ public class ScriptRunnerTest extends BaseDataTest {
     ScriptRunner runner = new ScriptRunner(conn);
     runner.setAutoCommit(true);
     runner.setStopOnError(true);
-
+    runJPetStoreScripts(runner);
+    
     String resource = "org/apache/ibatis/jdbc/ScriptCommentAfterEOLTerminator.sql";
     Reader reader = Resources.getResourceAsReader(resource);
 
