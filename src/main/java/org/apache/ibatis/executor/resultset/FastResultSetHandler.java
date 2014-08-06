@@ -15,12 +15,14 @@
  */
 package org.apache.ibatis.executor.resultset;
 
+import java.lang.reflect.Modifier;
 import java.sql.CallableStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -513,17 +515,26 @@ public class FastResultSetHandler implements ResultSetHandler {
   //
   // DISCRIMINATOR
   //
-
+  /** Fake resultmap. Serves only as a mark that we want to set the object value to null. */
+  static ResultMap NULL_VALUE_RESULT_MAP = new ResultMap.Builder( null, "NULL", Object.class, Collections.<ResultMapping> emptyList() ).build();;
+  
   public ResultMap resolveDiscriminatedResultMap(ResultSet rs, ResultMap resultMap, String columnPrefix, ResultColumnCache resultColumnCache) throws SQLException {
     Set<String> pastDiscriminators = new HashSet<String>();
     Discriminator discriminator = resultMap.getDiscriminator();
     while (discriminator != null) {
       String columnName = prependPrefix( discriminator.getResultMapping().getColumn(), columnPrefix );
 
-      if ( !resultColumnCache.hasColumn( columnName ) )
-        // if discriminator column is missing, return just basic (ancestor's) resultmap
-        // ...and do not throw an exception...  
-        return resultMap;
+      if (!resultColumnCache.hasColumn(columnName)) {
+        // discriminator column is missing...
+        Class<?> type = resultMap.getType();
+        if (type!=null && Modifier.isAbstract( type.getModifiers() ))
+              // ... and the resultMap type is abstract -> object value will not be read
+              return NULL_VALUE_RESULT_MAP;
+          else
+              // ... and the resultMap type is not abstract -> use original resultmap (parent) 
+              return resultMap;
+    }
+        
 
       final Object value = getDiscriminatorValue( rs, discriminator, columnName );
       final String discriminatedMapId = discriminator.getMapIdFor(String.valueOf(value));
@@ -535,6 +546,13 @@ public class FastResultSetHandler implements ResultSetHandler {
           break;
         }
       } else {
+          if (value == null )
+            // if discriminator value is null, object value will not be read 
+            resultMap = NULL_VALUE_RESULT_MAP;
+          else {
+            // if discriminator is known, but resultmap has not been found: 
+            // pass the original resultmap from method arguments (parent resultmap) 
+          }
         break;
       }
     }

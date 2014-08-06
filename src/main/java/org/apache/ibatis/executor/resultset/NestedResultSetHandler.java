@@ -132,6 +132,9 @@ public class NestedResultSetHandler extends FastResultSetHandler {
       applyNestedResultMappings(rs, resultMap, metaObject, columnPrefix, resultColumnCache, combinedKey);
       ancestorCache.remove(rowKey);
       return resultObject;
+    }
+    else if (resultMap == FastResultSetHandler.NULL_VALUE_RESULT_MAP) {  
+      return null;
     } else {
       final ResultLoaderMap lazyLoader = instantiateResultLoaderMap();
       Object resultObject = createResultObject(rs, resultMap, lazyLoader, columnPrefix, resultColumnCache);
