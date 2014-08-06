@@ -28,7 +28,7 @@
   </parent>
 
   <artifactId>cz.alis.keong.mybatis</artifactId>
-  <version>3.1.11-SNAPSHOT</version>
+  <version>3.1.11</version>
   <packaging>jar</packaging>
 
   <name>MyBatis</name>
