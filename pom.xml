@@ -27,8 +27,8 @@
     <version>15</version>
   </parent>
 
-  <artifactId>mybatis</artifactId>
-  <version>3.1.1-SNAPSHOT</version>
+  <artifactId>cz.alis.keong.mybatis</artifactId>
+  <version>3.1.10</version>
   <packaging>jar</packaging>
 
   <name>MyBatis</name>
@@ -80,9 +80,9 @@
   </contributors>
 
   <scm>
-    <url>scm:svn:https://github.com/gargii/mybatis-3/branches/discriminator</url>
-    <connection>scm:svn:https://github.com/gargii/mybatis-3/branches/discriminator</connection>
-    <developerConnection>scm:svn:https://github.com/gargii/mybatis-3/branches/discriminator</developerConnection>
+    <url>scm:svn:https://github.com/gargii/mybatis-3/tags/mybatis-3.1.10</url>
+    <connection>scm:svn:https://github.com/gargii/mybatis-3/tags/mybatis-3.1.10</connection>
+    <developerConnection>scm:svn:https://github.com/gargii/mybatis-3/tags/mybatis-3.1.10</developerConnection>
   </scm>
   <distributionManagement>
     <!-- Cannot define in parent ATM, see COMMONSSITE-26 -->
