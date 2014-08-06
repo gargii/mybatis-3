@@ -81,8 +81,8 @@
 
   <scm>
     <url></url>
-    <connection></connection>
-    <developerConnection></developerConnection>
+    <connection>scm:svn:https://github.com/gargii/mybatis-3/branches/discriminator</connection>
+    <developerConnection>scm:svn:https://github.com/gargii/mybatis-3/branches/discriminator</developerConnection>
   </scm>
   <distributionManagement>
     <!-- Cannot define in parent ATM, see COMMONSSITE-26 -->
