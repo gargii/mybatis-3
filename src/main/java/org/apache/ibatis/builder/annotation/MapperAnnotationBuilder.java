@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -75,9 +76,9 @@ import org.apache.ibatis.mapping.SqlSource;
 import org.apache.ibatis.mapping.StatementType;
 import org.apache.ibatis.session.Configuration;
 import org.apache.ibatis.session.RowBounds;
-import org.apache.ibatis.type.UnknownTypeHandler;
 import org.apache.ibatis.type.JdbcType;
 import org.apache.ibatis.type.TypeHandler;
+import org.apache.ibatis.type.UnknownTypeHandler;
 
 public class MapperAnnotationBuilder {
 
@@ -113,12 +114,25 @@ public class MapperAnnotationBuilder {
       assistant.setCurrentNamespace(type.getName());
       parseCache();
       parseCacheRef();
-      Method[] methods = type.getMethods();
+      Collection<Method> methods = getTypeMethods();
       for (Method method : methods) {
         parseResultsAndConstructorArgs(method);
         parseStatement(method);
       }
     }
+  }
+  
+  private Collection<Method> getTypeMethods() {
+    Map<String, Method> methods = new LinkedHashMap<>();
+    for (Method method : type.getMethods()) {
+      String methodId = generateResultMapName(method);
+      Method alreadyIn = methods.get(methodId);
+      /* avoid overridden methods in parent classes or interfaces */
+      if (alreadyIn == null || alreadyIn.getDeclaringClass().isAssignableFrom(method.getDeclaringClass())) {
+        methods.put(methodId, method);
+      }
+    }
+    return methods.values();
   }
 
   private void loadXmlResource() {
