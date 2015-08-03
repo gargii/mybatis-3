@@ -123,7 +123,7 @@ public class MapperAnnotationBuilder {
   }
   
   private Collection<Method> getTypeMethods() {
-    Map<String, Method> methods = new LinkedHashMap<>();
+    Map<String, Method> methods = new LinkedHashMap<String, Method>();
     for (Method method : type.getMethods()) {
       String methodId = generateResultMapName(method);
       Method alreadyIn = methods.get(methodId);
