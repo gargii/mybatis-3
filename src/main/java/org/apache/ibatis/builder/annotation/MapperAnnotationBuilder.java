@@ -24,10 +24,10 @@ import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -74,6 +74,8 @@ import org.apache.ibatis.mapping.ResultSetType;
 import org.apache.ibatis.mapping.SqlCommandType;
 import org.apache.ibatis.mapping.SqlSource;
 import org.apache.ibatis.mapping.StatementType;
+import org.apache.ibatis.reflection.ReflectionUtils;
+import org.apache.ibatis.reflection.ReflectionUtils.MethodCallback;
 import org.apache.ibatis.session.Configuration;
 import org.apache.ibatis.session.RowBounds;
 import org.apache.ibatis.type.JdbcType;
@@ -123,16 +125,33 @@ public class MapperAnnotationBuilder {
   }
   
   private Collection<Method> getTypeMethods() {
-    Map<String, Method> methods = new LinkedHashMap<String, Method>();
-    for (Method method : type.getMethods()) {
-      String methodId = generateResultMapName(method);
-      Method alreadyIn = methods.get(methodId);
-      /* avoid overridden methods in parent classes or interfaces */
-      if (alreadyIn == null || alreadyIn.getDeclaringClass().isAssignableFrom(method.getDeclaringClass())) {
-        methods.put(methodId, method);
+    final List<Method> methods = new ArrayList<Method>( 32 );
+    ReflectionUtils.doWithMethods( type, new MethodCallback() {
+      public void doWith( Method method ) {
+        boolean knownSignature = false;
+        Method methodBeingOverriddenWithCovariantReturnType = null;
+
+        for ( Method existingMethod : methods ) {
+          if ( method.getName().equals( existingMethod.getName() ) && Arrays.equals( method.getParameterTypes(), existingMethod.getParameterTypes() ) ) {
+            // is this a covariant return type situation?
+            if ( existingMethod.getReturnType() != method.getReturnType() && existingMethod.getReturnType().isAssignableFrom( method.getReturnType() ) ) {
+              methodBeingOverriddenWithCovariantReturnType = existingMethod;
+            }
+            else {
+              knownSignature = true;
+            }
+            break;
+          }
+        }
+        if ( methodBeingOverriddenWithCovariantReturnType != null ) {
+          methods.remove( methodBeingOverriddenWithCovariantReturnType );
+        }
+        if ( !knownSignature && !ReflectionUtils.isCglibRenamedMethod( method ) ) {
+          methods.add( method );
+        }
       }
-    }
-    return methods.values();
+    } );
+    return methods;
   }
 
   private void loadXmlResource() {
